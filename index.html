@@ -261,6 +261,62 @@
     }
 
     // === Wind interaction ===
+    let dragging        = false;
+    let dragPrevAngle   = 0;
+    let dragStartMins   = 0;
+    let dragCumDelta    = 0;
+
+    function clockAngle(e) {
+      // Returns angle 0..2π with 0 at 12 o'clock, positive clockwise
+      const rect = canvas.getBoundingClientRect();
+      const dx   = e.clientX - rect.left - rect.width  / 2;
+      const dy   = e.clientY - rect.top  - rect.height / 2;
+      return (Math.atan2(dx, -dy) + Math.PI * 2) % (Math.PI * 2);
+    }
+
+    function shortestDelta(from, to) {
+      // Smallest signed angle difference between two clock angles
+      let d = to - from;
+      if (d >  Math.PI) d -= Math.PI * 2;
+      if (d < -Math.PI) d += Math.PI * 2;
+      return d;
+    }
+
+    function setTotalMinutes(mins) {
+      const clamped           = Math.max(0, Math.round(mins));
+      state.totalMinutes      = clamped;
+      state.remainingSeconds  = clamped * 60;
+      syncInputsFromState();   // forward ref — safe until Task 4 defines it
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      if (state.status === 'running' || state.status === 'expired') return;
+      dragging      = true;
+      dragPrevAngle = clockAngle(e);
+      dragStartMins = state.totalMinutes;
+      dragCumDelta  = 0;
+      startRaf();
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const ang    = clockAngle(e);
+      const delta  = shortestDelta(dragPrevAngle, ang);
+      dragCumDelta += delta;
+      dragPrevAngle = ang;
+      setTotalMinutes(dragStartMins + dragCumDelta / (Math.PI * 2) * 60);
+    });
+
+    document.addEventListener('mouseup', () => { dragging = false; });
+
+    canvas.addEventListener('wheel', e => {
+      if (state.status === 'running' || state.status === 'expired') return;
+      e.preventDefault();
+      const step = e.shiftKey ? 5 : 1;             // Shift+scroll = 5-min jumps
+      setTotalMinutes(state.totalMinutes + (e.deltaY < 0 ? step : -step));
+      startRaf();
+    }, { passive: false });
+
     // === Input sync ===
     // === Control buttons ===
     // === Expiry handler ===
