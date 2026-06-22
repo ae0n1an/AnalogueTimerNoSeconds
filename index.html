@@ -318,6 +318,34 @@
     }, { passive: false });
 
     // === Input sync ===
+    const inpH = document.getElementById('inp-h');
+    const inpM = document.getElementById('inp-m');
+
+    function syncInputsFromState() {
+      inpH.value = Math.floor(state.totalMinutes / 60);
+      inpM.value = state.totalMinutes % 60;
+    }
+
+    function syncStateFromInputs() {
+      const h    = Math.max(0, Math.min(99, parseInt(inpH.value,  10) || 0));
+      const m    = Math.max(0, Math.min(59, parseInt(inpM.value, 10) || 0));
+      inpH.value = h;
+      inpM.value = m;
+      setTotalMinutes(h * 60 + m);
+    }
+
+    inpH.addEventListener('input', () => {
+      if (state.status === 'running') return;
+      syncStateFromInputs();
+      startRaf();
+    });
+
+    inpM.addEventListener('input', () => {
+      if (state.status === 'running') return;
+      syncStateFromInputs();
+      startRaf();
+    });
+
     // === Control buttons ===
     // === Expiry handler ===
     // === Bootstrap ===
