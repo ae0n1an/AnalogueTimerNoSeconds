@@ -117,15 +117,155 @@
   </div>
   <script>
     // === Constants ===
+    const SIZE = 400;
+    const DPR  = Math.min(window.devicePixelRatio || 1, 2);
+    const CX   = SIZE / 2;
+    const CY   = SIZE / 2;
+
+    const FACE_R     = 170;
+    const TICK_OUTER = 160;
+    const TICK_SHORT =   5;
+    const TICK_LONG  =  11;
+    const HAND_LEN   = 132;
+    const HAND_TAIL  =  22;
+    const DOT_R      =   5;
+    const LABEL_R    = 138;
+
+    const C_FACE         = '#ffffff';
+    const C_TICK         = '#d4d4d4';
+    const C_TICK_5       = '#b0b0b0';
+    const C_LABEL        = '#999999';
+    const C_HAND         = '#1c1c1c';
+    const C_DOT_IDLE     = '#1c1c1c';
+    const C_DOT_EXPIRED  = '#c97a4a';
+
     // === State ===
+    const state = {
+      totalMinutes:     0,
+      remainingSeconds: 0,
+      status:           'idle',  // 'idle' | 'running' | 'paused' | 'expired'
+      endTime:          null,    // Date.now() + remainingSeconds*1000 while running
+    };
+
     // === Canvas setup ===
+    const canvas = document.getElementById('clock');
+    const ctx    = canvas.getContext('2d');
+    canvas.width  = SIZE * DPR;
+    canvas.height = SIZE * DPR;
+    canvas.style.width  = SIZE + 'px';
+    canvas.style.height = SIZE + 'px';
+    ctx.scale(DPR, DPR);
+
     // === Renderer ===
+    function getDisplaySeconds() {
+      if (state.status === 'running' && state.endTime !== null) {
+        return Math.max(0, (state.endTime - Date.now()) / 1000);
+      }
+      return state.remainingSeconds;
+    }
+
+    function draw() {
+      const dispSecs = getDisplaySeconds();
+      const dispMins = dispSecs / 60;          // fractional minutes for smooth hand
+
+      // Expiry detection (called from rAF loop while running)
+      if (state.status === 'running' && dispSecs <= 0) {
+        state.remainingSeconds = 0;
+        state.status = 'expired';
+        onExpiry();
+      }
+
+      ctx.clearRect(0, 0, SIZE, SIZE);
+
+      // — Face —
+      ctx.beginPath();
+      ctx.arc(CX, CY, FACE_R, 0, Math.PI * 2);
+      ctx.fillStyle = C_FACE;
+      ctx.fill();
+
+      // — Ticks + labels —
+      for (let i = 0; i < 60; i++) {
+        const ang    = (i / 60) * Math.PI * 2 - Math.PI / 2;  // 0 = 12 o'clock, CW
+        const isFive = i % 5 === 0;
+        const len    = isFive ? TICK_LONG : TICK_SHORT;
+        const ox     = CX + Math.cos(ang) * TICK_OUTER;
+        const oy     = CY + Math.sin(ang) * TICK_OUTER;
+        const ix     = CX + Math.cos(ang) * (TICK_OUTER - len);
+        const iy     = CY + Math.sin(ang) * (TICK_OUTER - len);
+
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(ix, iy);
+        ctx.strokeStyle = isFive ? C_TICK_5 : C_TICK;
+        ctx.lineWidth   = isFive ? 1.5 : 0.8;
+        ctx.stroke();
+
+        if (isFive) {
+          // Label: 12 o'clock position (i=0) → "60", i=5 → "5", ..., i=55 → "55"
+          const label = i === 0 ? '60' : String(i);
+          const lx    = CX + Math.cos(ang) * LABEL_R;
+          const ly    = CY + Math.sin(ang) * LABEL_R;
+          ctx.font         = "10px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+          ctx.fillStyle    = C_LABEL;
+          ctx.textAlign    = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, lx, ly);
+        }
+      }
+
+      // — Hand —
+      const handAng = (dispMins % 60) / 60 * Math.PI * 2 - Math.PI / 2;
+      const tipX  = CX + Math.cos(handAng) * HAND_LEN;
+      const tipY  = CY + Math.sin(handAng) * HAND_LEN;
+      const tailX = CX - Math.cos(handAng) * HAND_TAIL;
+      const tailY = CY - Math.sin(handAng) * HAND_TAIL;
+
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(tipX, tipY);
+      ctx.strokeStyle = C_HAND;
+      ctx.lineWidth   = 1.5;
+      ctx.lineCap     = 'round';
+      ctx.stroke();
+
+      // — Centre dot —
+      ctx.beginPath();
+      ctx.arc(CX, CY, DOT_R, 0, Math.PI * 2);
+      ctx.fillStyle = state.status === 'expired' ? C_DOT_EXPIRED : C_DOT_IDLE;
+      ctx.fill();
+
+      // — Hour label (only when ≥ 60 minutes remain) —
+      const wholeHours = Math.floor(dispMins / 60);
+      if (wholeHours >= 1) {
+        ctx.font         = "bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        ctx.fillStyle    = '#c0c0c0';
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(wholeHours + 'h', CX, CY - 32);
+      }
+    }
+
     // === RAF loop ===
+    let rafId = null;
+
+    function startRaf() {
+      if (rafId) return;
+      (function loop() {
+        draw();
+        rafId = requestAnimationFrame(loop);
+      }());
+    }
+
+    function stopRaf() {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    }
+
     // === Wind interaction ===
     // === Input sync ===
     // === Control buttons ===
     // === Expiry handler ===
     // === Bootstrap ===
+    draw();
   </script>
 </body>
 </html>
