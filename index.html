@@ -347,8 +347,56 @@
     });
 
     // === Control buttons ===
+    const btnStart = document.getElementById('btn-start');
+    const btnPause = document.getElementById('btn-pause');
+    const btnReset = document.getElementById('btn-reset');
+
+    function updateButtons() {
+      const s = state.status;
+      btnStart.hidden  = s === 'running' || s === 'expired';
+      btnPause.hidden  = s !== 'running';
+      btnReset.hidden  = s === 'idle';
+      btnStart.textContent = s === 'paused' ? 'Resume' : 'Start';
+    }
+
+    function setInputsDisabled(disabled) {
+      inpH.disabled = disabled;
+      inpM.disabled = disabled;
+    }
+
+    btnStart.addEventListener('click', () => {
+      if (state.remainingSeconds <= 0) return;         // nothing set
+      state.status  = 'running';
+      state.endTime = Date.now() + state.remainingSeconds * 1000;
+      updateButtons();
+      setInputsDisabled(true);
+      startRaf();
+    });
+
+    btnPause.addEventListener('click', () => {
+      state.remainingSeconds = Math.max(0, (state.endTime - Date.now()) / 1000);
+      state.status  = 'paused';
+      state.endTime = null;
+      updateButtons();
+      setInputsDisabled(false);
+    });
+
+    btnReset.addEventListener('click', () => {
+      state.totalMinutes     = 0;
+      state.remainingSeconds = 0;
+      state.status           = 'idle';
+      state.endTime          = null;
+      document.getElementById('clock-wrapper').classList.remove('pulse');
+      syncInputsFromState();
+      updateButtons();
+      setInputsDisabled(false);
+      stopRaf();
+      draw();
+    });
+
     // === Expiry handler ===
     // === Bootstrap ===
+    updateButtons();
     draw();
   </script>
 </body>
