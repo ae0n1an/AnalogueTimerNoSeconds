@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f2;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    #clock-wrapper {
+      border-radius: 50%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    @keyframes pulse {
+      0%   { opacity: 1; }
+      40%  { opacity: 0.35; }
+      100% { opacity: 1; }
+    }
+
+    #clock-wrapper.pulse {
+      animation: pulse 0.9s ease-in-out 1;
+    }
+
+    canvas {
+      display: block;
+      border-radius: 50%;
+      cursor: grab;
+    }
+
+    canvas:active { cursor: grabbing; }
+
+    #inputs {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      color: #aaa;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+
+    #inputs input {
+      width: 52px;
+      text-align: center;
+      border: none;
+      border-bottom: 1px solid #ddd;
+      background: transparent;
+      font-size: 22px;
+      font-family: inherit;
+      color: #333;
+      padding: 2px 4px;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+
+    #inputs input::-webkit-inner-spin-button,
+    #inputs input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    #inputs input:focus { border-bottom-color: #aaa; }
+    #inputs input:disabled { color: #bbb; border-bottom-color: #eee; }
+
+    #controls {
+      display: flex;
+      gap: 16px;
+    }
+
+    #controls button {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #666;
+      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    #controls button:hover { color: #111; background: rgba(0,0,0,0.05); }
+    #btn-start { color: #333; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="clock-wrapper">
+      <canvas id="clock"></canvas>
+    </div>
+    <div id="inputs">
+      <input type="number" id="inp-h" min="0" max="99" value="0">
+      <span>h</span>
+      <input type="number" id="inp-m" min="0" max="59" value="0">
+      <span>m</span>
+    </div>
+    <div id="controls">
+      <button id="btn-start">Start</button>
+      <button id="btn-pause" hidden>Pause</button>
+      <button id="btn-reset" hidden>Reset</button>
+    </div>
+  </div>
+  <script>
+    // === Constants ===
+    // === State ===
+    // === Canvas setup ===
+    // === Renderer ===
+    // === RAF loop ===
+    // === Wind interaction ===
+    // === Input sync ===
+    // === Control buttons ===
+    // === Expiry handler ===
+    // === Bootstrap ===
+  </script>
+</body>
+</html>
