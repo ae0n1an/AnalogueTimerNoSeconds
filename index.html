@@ -395,6 +395,19 @@
     });
 
     // === Expiry handler ===
+    function onExpiry() {
+      state.endTime = null;
+      updateButtons();
+      setInputsDisabled(false);
+      stopRaf();
+      draw();                                   // final draw — dot is now amber
+
+      const wrapper = document.getElementById('clock-wrapper');
+      wrapper.classList.remove('pulse');
+      void wrapper.offsetWidth;                 // force reflow so animation re-triggers
+      wrapper.classList.add('pulse');
+    }
+
     // === Bootstrap ===
     updateButtons();
     draw();
